@@ -5,5 +5,4 @@ authors = ["Callum Rogers <callumrogers@hotmail.co.uk>"]
 
 [dependencies]
 aws_lambda = { git = "https://github.com/srijs/rust-aws-lambda", rev = "75f447c64c7ff34acfde4a16eceb14429f071703" }
-reqwest = "*"
 log = "*"
