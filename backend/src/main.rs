@@ -3,9 +3,8 @@ extern crate aws_lambda as lambda;
 extern crate rusoto_core;
 extern crate rusoto_dynamodb;
 
-use std::io::prelude::*;
 use rusoto_core::Region;
-use rusoto_dynamodb::{DynamoDbClient, ListTablesInput};
+use rusoto_dynamodb::{DynamoDb, DynamoDbClient};
 
 fn main() {
     lambda::logger::init();
