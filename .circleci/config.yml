@@ -15,7 +15,8 @@ jobs:
       TERM: dumb
 
     steps:
-    - checkout
+    - checkout:
+        path: ~/repo
 
     # - *skip-job-if-backend-unchanged
 
