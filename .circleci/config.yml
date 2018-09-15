@@ -18,7 +18,7 @@ jobs:
     - checkout:
         path: ~/repo
 
-    - *skip-job-if-backend-unchanged
+    # - *skip-job-if-backend-unchanged
 
     - run:
         name: Version information
