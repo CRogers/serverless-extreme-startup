@@ -39,7 +39,7 @@ jobs:
         key: v1-cargo-cache-{{ checksum "Cargo.lock" }}
 
     - persist_to_workspace:
-        root: backend
+        root: .
         paths:
         - target/release/extreme-startup
 
