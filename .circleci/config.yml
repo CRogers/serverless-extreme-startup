@@ -55,7 +55,7 @@ jobs:
     - checkout:
         path: ~/repo
 
-    - *skip-job-if-backend-unchanged
+    # - *skip-job-if-backend-unchanged
 
     - restore_cache:
         name: Restore Yarn Package Cache
