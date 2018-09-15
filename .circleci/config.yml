@@ -33,9 +33,9 @@ jobs:
     - save_cache:
         paths:
         - /usr/local/cargo/registry
-        - target/debug/.fingerprint
-        - target/debug/build
-        - target/debug/deps
+        - target/release/.fingerprint
+        - target/release/build
+        - target/release/deps
         key: v1-cargo-cache-{{ checksum "Cargo.lock" }}
 
     - persist_to_workspace:
