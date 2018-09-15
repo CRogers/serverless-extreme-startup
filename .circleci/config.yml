@@ -9,7 +9,7 @@ jobs:
     docker:
     - image: ekidd/rust-musl-builder:1.29.0
 
-    working_directory: ~/repo
+    working_directory: ~/repo/backend
 
     environment:
       TERM: dumb
