@@ -47,7 +47,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: target/release/extreme-startup.zip
+  artifact: target/x86_64-unknown-linux-musl/release/extreme-startup.zip
 
 functions:
   hello:

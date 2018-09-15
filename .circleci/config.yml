@@ -26,22 +26,21 @@ jobs:
 
     - restore_cache:
         keys:
-        - v2-cargo-cache-{{ checksum "Cargo.lock" }}
+        - v3-cargo-cache-{{ checksum "Cargo.lock" }}
 
     - run: cargo build --release
 
     - save_cache:
         paths:
-        - /usr/local/cargo/registry
-        - target/release/.fingerprint
-        - target/release/build
-        - target/release/deps
-        key: v2-cargo-cache-{{ checksum "Cargo.lock" }}
+        - ~/.cargo/git
+        - ~/.cargo/registry
+        - target/
+        key: v3-cargo-cache-{{ checksum "Cargo.lock" }}
 
     - persist_to_workspace:
         root: .
         paths:
-        - target/release/extreme-startup
+        - target/x86_64-unknown-linux-musl/release/extreme-startup
 
   deploy-lambdas:
     docker:
@@ -78,7 +77,7 @@ jobs:
 
     - run:
         name: Packaging Lambda
-        command: zip -d target/release/extreme-startup{,.zip}
+        command: zip -d target/x86_64-unknown-linux-musl/release/extreme-startup{,.zip}
 
     - run:
         name: Deploying Lambdas
