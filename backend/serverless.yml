@@ -60,6 +60,36 @@ functions:
         cors: true
         integration: lambda-proxy
 
+resources:
+  Resources:
+    testTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: test-table
+        AttributeDefinitions:
+        - AttributeName: attr
+          AttributeType: S
+        KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    DynamoDBIamPolicy:
+      Type: AWS::IAM::Policy
+      DependsOn: DynamoDbTable
+      Properties:
+        PolicyName: lambda-dynamodb
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            Resource: arn:aws:dynamodb:*:*:table/test-table
+        Roles:
+        - Ref: IamRoleLambdaExecution
 
 plugins:
 - serverless-prune-plugin
