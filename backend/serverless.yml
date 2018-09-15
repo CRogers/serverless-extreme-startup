@@ -62,7 +62,7 @@ functions:
 
 resources:
   Resources:
-    testTable:
+    DynamoDbTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: test-table

@@ -4,3 +4,4 @@ target/
 *.iml
 node_modules/
 yarn-error.log
+.serverless/
