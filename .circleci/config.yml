@@ -1,0 +1,98 @@
+skip-job-if-backend-unchanged: &skip-job-if-backend-unchanged
+  run:
+    name: Skipping job if nothing has changed since last build
+    command: ~/repo/.circleci/skip-job-if-directory-unchanged.sh ~/repo/{.circleci,backend}
+
+version: 2
+jobs:
+  build-lambdas:
+    docker:
+    - image: ekidd/rust-musl-builder:1.29.0
+
+    working_directory: ~/repo
+
+    environment:
+      TERM: dumb
+
+    steps:
+    - checkout
+
+    - *skip-job-if-backend-unchanged
+
+    - run:
+      name: Version information
+      command: rustc --version; cargo --version; rustup --version
+
+    - restore_cache:
+        keys:
+        - v1-cargo-cache-{{ checksum "Cargo.lock" }}
+
+    - run: cargo build --release
+
+    - save_cache:
+        paths:
+        - /usr/local/cargo/registry
+        - target/debug/.fingerprint
+        - target/debug/build
+        - target/debug/deps
+        key: v1-cargo-cache-{{ checksum "Cargo.lock" }}
+
+    - persist_to_workspace:
+        root: backend
+        paths:
+        - target/release/extreme-startup
+
+  deploy-lambdas:
+    docker:
+    - image: circleci/node:10
+
+    working_directory: ~/repo/backend
+
+    environment:
+      TERM: dumb
+
+    steps:
+    - checkout:
+        path: ~/repo
+
+    - *skip-job-if-backend-unchanged
+
+    - restore_cache:
+        name: Restore Yarn Package Cache
+        keys:
+        - v2-yarn-packages-toplevel-{{ .Branch }}-{{ checksum "yarn.lock" }}
+
+    - run:
+        name: Install Dependencies
+        command: yarn install
+
+    - save_cache:
+        name: Save Yarn Package Cache
+        key: v2-yarn-packages-toplevel-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        paths:
+        - node_modules/
+
+    - attach_workspace:
+        at: .
+
+    - run:
+        name: Packaging Lambda
+        command: zip -d target/release/extreme-startup{,.zip}
+
+    - run:
+        name: Deploying Lambdas
+        command: yarn run serverless deploy -v
+
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+    - build-lambdas
+    - deploy-lambdas:
+        requires:
+        - build-lambdas
+        filters:
+          branches:
+            only: master
+
