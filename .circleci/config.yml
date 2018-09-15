@@ -25,7 +25,7 @@ jobs:
 
     - restore_cache:
         keys:
-        - v1-cargo-cache-{{ checksum "Cargo.lock" }}
+        - v1-cargo-cache-{{ checksum "backend/Cargo.lock" }}
 
     - run: cargo build --release
 
@@ -35,7 +35,7 @@ jobs:
         - target/debug/.fingerprint
         - target/debug/build
         - target/debug/deps
-        key: v1-cargo-cache-{{ checksum "Cargo.lock" }}
+        key: v1-cargo-cache-{{ checksum "backend/Cargo.lock" }}
 
     - persist_to_workspace:
         root: backend
