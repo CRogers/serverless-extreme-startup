@@ -64,7 +64,7 @@ resources:
       Properties:
         TableName: test-table
         AttributeDefinitions:
-        - AttributeName: attr
+        - AttributeName: id
           AttributeType: S
         KeySchema:
         - AttributeName: id
