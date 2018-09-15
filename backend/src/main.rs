@@ -11,16 +11,18 @@ fn main() {
     info!("New lambda started!");
 
     let client = DynamoDbClient::new(Region::EuWest2);
-    match client.describe_table(DescribeTableInput { table_name: "test-table".to_string() }).sync() {
-        Ok(output) => {
-            println!("Output: {:?}", output);
-        },
-        Err(error) => {
-            error!("Error: {:?}", error);
-        }
-    }
+
 
     lambda::gateway::start(|_req| {
+        match client.describe_table(DescribeTableInput { table_name: "test-table".to_string() }).sync() {
+            Ok(output) => {
+                println!("Output: {:?}", output);
+            },
+            Err(error) => {
+                error!("Error: {:?}", error);
+            }
+        }
+
         let res = lambda::gateway::response()
             .status(200)
             .body("Hello ƛ!".into())?;
