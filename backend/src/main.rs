@@ -4,25 +4,16 @@ extern crate rusoto_core;
 extern crate rusoto_dynamodb;
 
 use rusoto_core::Region;
-use rusoto_dynamodb::{DynamoDb, DynamoDbClient};
+use rusoto_dynamodb::{DescribeTableInput, DynamoDb, DynamoDbClient};
 
 fn main() {
     lambda::logger::init();
     info!("New lambda started!");
 
     let client = DynamoDbClient::new(Region::EuWest2);
-    match client.list_tables(Default::default()).sync() {
+    match client.describe_table(DescribeTableInput { table_name: "test-table".to_string() }).sync() {
         Ok(output) => {
-            match output.table_names {
-                Some(table_names) => {
-                    info!("Tables in database:");
-
-                    for table_name in table_names {
-                        info!("{}", table_name);
-                    }
-                },
-                None => info!("No tables in database!"),
-            }
+            println!("Output: {:?}", output);
         },
         Err(error) => {
             error!("Error: {:?}", error);
