@@ -11,9 +11,8 @@ fn main() {
     info!("New lambda started!");
 
     let client = DynamoDbClient::new(Region::EuWest2);
-
-
-    lambda::gateway::start(|_req| {
+    
+    lambda::gateway::start(move |_req| {
         match client.describe_table(DescribeTableInput { table_name: "test-table".to_string() }).sync() {
             Ok(output) => {
                 println!("Output: {:?}", output);
