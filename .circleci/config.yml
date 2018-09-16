@@ -156,7 +156,7 @@ workflows:
     - deploy-frontend:
         requires:
         - build-frontend
-        - deploy-lambdas
+        # - deploy-lambdas
         filters:
           branches:
             only: master
