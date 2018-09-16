@@ -84,6 +84,62 @@ jobs:
         name: Deploying Lambdas
         command: yarn run serverless deploy -v
 
+  build-frontend:
+    docker:
+    - image: circleci/node:10
+
+    working_directory: ~/repo/frontend
+
+    environment:
+      TERM: dumb
+
+    steps:
+    - checkout:
+        path: ~/repo
+
+    # - *skip-job-if-frontend-unchanged
+
+    - restore_cache:
+        name: Restore Yarn Package Cache
+        keys:
+        - v1-yarn-packages-frontend-{{ checksum "yarn.lock" }}
+
+    - run: yarn install
+
+    - save_cache:
+        name: Save Yarn Package Cache
+        key: v1-yarn-packages-frontend-{{ checksum "yarn.lock" }}
+        paths:
+        - node_modules/
+
+    - run: yarn run webpack
+
+    - persist_to_workspace:
+        root: .
+        paths:
+        - site
+
+  deploy-frontend:
+    docker:
+    - image: circleci/node:10
+
+    working_directory: ~/repo/frontend
+
+    environment:
+      TERM: dumb
+
+    steps:
+    - checkout:
+        path: ~/repo
+
+    # - *skip-job-if-frontend-unchanged
+
+    - attach_workspace:
+        at: .
+
+    - run:
+        name: Deploying Frontend
+        command: ./scripts/deploy-gh-pages.sh CRogers/serverless-extreme-startup-frontend
 
 workflows:
   version: 2
@@ -93,6 +149,14 @@ workflows:
     - deploy-lambdas:
         requires:
         - build-lambdas
+        filters:
+          branches:
+            only: master
+    - build-frontend
+    - deploy-frontend:
+        requires:
+        - build-frontend
+        - deploy-lambdas
         filters:
           branches:
             only: master
