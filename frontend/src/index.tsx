@@ -7,6 +7,7 @@ import createBrowserHistory from "history/createBrowserHistory";
 import { Route, Switch } from "react-router";
 import { BROWSER_URL_BASENAME } from "./constants/buildConstants";
 import { handleGithubPagesSpaRedirect } from "./github-pages/gh-pages-spa-redirect-handler";
+import { Frontpage } from "./frontpage/frontpage";
 
 handleGithubPagesSpaRedirect();
 
@@ -31,7 +32,7 @@ ReactDom.render(
     <Provider store={store}>
         <ConnectedRouter history={history}>
             <Switch>
-                <Route exact path="/" render={() => <div>hiya!</div>}/>
+                <Route exact path="/" render={() => <Frontpage />}/>
                 <Route render={() => (<div>where?</div>)} />
             </Switch>
         </ConnectedRouter>

@@ -57,7 +57,9 @@ module.exports = (env, originalArgv) => {
         ],
         serve: {
             open: true,
-            hot: true,
+            hotClient: {
+                allEntries: true
+            },
             add: (app, middleware, options) => {
                 const historyOptions = {
                     index: '/',
