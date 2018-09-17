@@ -74,9 +74,13 @@ resources:
 
 plugins:
 - serverless-prune-plugin
+- serverless-apigw-binary
 - serverless-localstack
 
 custom:
+  apigwBinary:
+    types:
+    - '*/*'
   localstack:
     debug: true
     host: http://localhost

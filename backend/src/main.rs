@@ -30,7 +30,7 @@ impl Test {
 
 impl_web! {
     impl Test {
-        #[get("/")]
+        #[get("/test")]
         fn test(&self) -> Result<&'static str, ()> {
             self.describe_table();
             Ok("Hello ƛ!")
