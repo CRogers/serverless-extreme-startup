@@ -1,4 +1,6 @@
 extern crate aws_lambda as lambda;
+extern crate aws_lambda_tower_web;
+#[macro_use] extern crate tower_web;
 #[macro_use] extern crate log;
 extern crate rusoto_core;
 extern crate rusoto_dynamodb;
@@ -6,14 +8,16 @@ extern crate rusoto_dynamodb;
 use rusoto_core::Region;
 use rusoto_dynamodb::{DescribeTableInput, DynamoDb, DynamoDbClient};
 
-fn main() {
-    lambda::logger::init();
-    info!("New lambda started!");
+use tower_web::ServiceBuilder;
+use aws_lambda_tower_web::ServiceBuilderExt;
 
-    let client = DynamoDbClient::new(Region::EuWest2);
-    
-    lambda::gateway::start(move |_req| {
-        match client.describe_table(DescribeTableInput { table_name: "test-table".to_string() }).sync() {
+struct Test {
+    dynamodb: DynamoDbClient,
+}
+
+impl Test {
+    fn describe_table(&self) {
+        match self.dynamodb.describe_table(DescribeTableInput { table_name: "test-table".to_string() }).sync() {
             Ok(output) => {
                 println!("Output: {:?}", output);
             },
@@ -21,13 +25,29 @@ fn main() {
                 error!("Error: {:?}", error);
             }
         }
+    }
+}
 
-        let res = lambda::gateway::response()
-            .status(200)
-            .body("Hello ƛ!".into())?;
+impl_web! {
+    impl Test {
+        #[get("/")]
+        fn test(&self) -> Result<&'static str, ()> {
+            self.describe_table();
+            Ok("Hello ƛ!")
+        }
+    }
+}
 
-        Ok(res)
-    })
+fn main() {
+    lambda::logger::init();
+    info!("New lambda started!");
+
+    let client = DynamoDbClient::new(Region::EuWest2);
+
+    ServiceBuilder::new()
+        .resource(Test { dynamodb: client })
+        .run_lambda()
+        .unwrap();
 }
 
 #[cfg(test)]
