@@ -41,18 +41,18 @@ impl_web! {
     }
 }
 
-fn service_builder() -> ServiceBuilder<Test, DefaultCatch, Identity> {
-    let client = DynamoDbClient::new(Region::EuWest2);
+fn service_builder(region: Region) -> ServiceBuilder<Test, DefaultCatch, Identity> {
+    lambda::logger::init();
+    info!("New lambda started!");
+
+    let client = DynamoDbClient::new(region);
 
     ServiceBuilder::new()
         .resource(Test { dynamodb: client })
 }
 
 fn main() {
-    lambda::logger::init();
-    info!("New lambda started!");
-
-    service_builder()
+    service_builder(Region::EuWest2)
         .run_lambda()
         .unwrap();
 }
@@ -65,7 +65,10 @@ mod tests {
     fn test() {
         let addr = SocketAddr::from(([127, 0, 0, 1], 9123));
 
-        service_builder()
+        service_builder(Region::Custom {
+            name: "local".to_owned(),
+            endpoint: "http://localhost:8000".to_owned()
+        })
             .run(&addr)
             .unwrap();
     }
