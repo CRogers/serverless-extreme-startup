@@ -76,11 +76,16 @@ plugins:
 - serverless-prune-plugin
 - serverless-apigw-binary
 - serverless-localstack
+- serverless-dynamodb-local
 
 custom:
   apigwBinary:
     types:
     - '*/*'
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
   localstack:
     debug: true
     host: http://localhost
