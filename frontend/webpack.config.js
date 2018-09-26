@@ -49,7 +49,9 @@ module.exports = (env, originalArgv) => {
             }),
             new HtmlWebpackInlineSourcePlugin(),
             new webpack.DefinePlugin({
-                WEBPACK_DEFINED_API_URL_BASE: JSON.stringify("blah"),
+                WEBPACK_DEFINED_API_URL_BASE: JSON.stringify(mode === 'production'
+                    ? 'https://ya9t1bqh71.execute-api.eu-west-2.amazonaws.com/prod/'
+                    : 'http://localhost:9123/'),
                 WEBPACK_DEFINED_BROWSER_URL_BASENAME: JSON.stringify(mode === 'production'
                     ? '/serverless-extreme-startup-frontend/'
                     : '/')

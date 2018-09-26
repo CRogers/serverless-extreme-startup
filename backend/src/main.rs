@@ -116,6 +116,8 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tower_web::middleware::cors::CorsBuilder;
+    use tower_web::middleware::cors::AllowedOrigins;
 
     #[test]
     fn test() {
@@ -125,6 +127,9 @@ mod tests {
             name: "local".to_owned(),
             endpoint: "http://localhost:8000".to_owned()
         }, "extreme-startup-prod-games".to_owned())
+            .middleware(CorsBuilder::new()
+                .allow_origins(AllowedOrigins::Any { allow_null: true })
+                .build())
             .run(&addr)
             .unwrap();
     }
