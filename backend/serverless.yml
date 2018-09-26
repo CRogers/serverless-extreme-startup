@@ -39,6 +39,8 @@ provider:
     - "Fn::GetAtt": [ GamesTable, Arn ]
 
   environment:
+    SSL_CERT_DIR: /etc/ssl/certs
+    SSL_CERT_FILE: /etc/ssl/certs/ca-bundle.crt
     RUST_BACKTRACE: 1
     GAMES_TABLE: ${self:service}-${self:provider.stage}-games
 
