@@ -40,6 +40,7 @@ provider:
 
   environment:
     RUST_BACKTRACE: 1
+    GAMES_TABLE: ${self:service}-${self:provider.stage}-games
 
 # you can add packaging information here
 package:
@@ -61,11 +62,9 @@ resources:
     GamesTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}-games
+        TableName: ${self:provider.environment.GAMES_TABLE}
         AttributeDefinitions:
         - AttributeName: game_id
-          AttributeType: S
-        - AttributeName: time_started
           AttributeType: S
         KeySchema:
         - AttributeName: game_id

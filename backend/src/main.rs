@@ -7,9 +7,10 @@ extern crate rusoto_dynamodb;
 extern crate serde;
 extern crate serde_dynamodb;
 extern crate chrono;
+#[macro_use] extern crate maplit;
 
 use rusoto_core::Region;
-use rusoto_dynamodb::{DescribeTableInput, AttributeValue, PutItemInput, DynamoDb, DynamoDbClient};
+use rusoto_dynamodb::{AttributeValue, PutItemInput, GetItemInput, DynamoDb, DynamoDbClient};
 
 use tower_web::ServiceBuilder;
 use aws_lambda_tower_web::ServiceBuilderExt;
@@ -18,65 +19,96 @@ use tower_web::middleware::Identity;
 use std::net::SocketAddr;
 use chrono::DateTime;
 use chrono::Utc;
-use std::collections::HashMap;
 
 struct Test {
-    dynamodb: DynamoDbClient,
+    games: Games,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Response)]
 struct Game {
     game_id: String,
     time_started: DateTime<Utc>,
 }
 
-impl Test {
-    fn describe_table(&self) {
-        match self.dynamodb.describe_table(&DescribeTableInput { table_name: "test-table".to_string() }).sync() {
-            Ok(output) => {
-                println!("Output: {:?}", output);
-            },
-            Err(error) => {
-                error!("Error: {:?}", error);
-            }
-        }
-    }
+struct Games {
+    dynamodb: DynamoDbClient,
+    table_name: String,
+}
 
+const GAME_ID: &str = "game_id";
+
+impl Games {
     fn create_new_game(&self, game_id: &str) {
+        info!("Accessing table with name: {}", self.table_name);
         let v = serde_dynamodb::to_hashmap(&Game {
             game_id: game_id.to_owned(),
             time_started: Utc::now(),
         }).unwrap();
         self.dynamodb.put_item(&PutItemInput {
+            table_name: self.table_name.clone(),
             item: v,
-            table_name: "test-table".to_owned(),
             ..Default::default()
         }).sync().unwrap();
     }
+
+    fn get_game(&self, game_id: &str) -> Game {
+        let key_val = AttributeValue { s: Some(game_id.to_owned()), ..Default::default() };
+        let thing = self.dynamodb.get_item(&GetItemInput {
+            consistent_read: Some(true),
+            key: hashmap! { GAME_ID.to_owned() => key_val },
+            table_name: self.table_name.clone(),
+            ..Default::default()
+        }).sync().unwrap()
+            .item.unwrap();
+
+        let real_thing: Game = serde_dynamodb::from_hashmap(thing).unwrap();
+
+        info!("Read: {:?}", real_thing);
+
+        real_thing
+    }
+}
+
+impl Test {
+    fn create_game(&self, game_id: String) -> Result<String, ()> {
+        self.games.create_new_game(&game_id);
+        Ok(game_id)
+    }
+
 }
 
 impl_web! {
     impl Test {
         #[get("/test")]
         fn test(&self) -> Result<&'static str, ()> {
-            self.describe_table();
             Ok("Hello ƛ!")
+        }
+
+        #[post("/create/:game_id")]
+        fn create(&self, game_id: String) -> Result<String, ()> {
+            self.create_game(game_id)
+        }
+
+        #[get("/games/:game_id")]
+        #[content_type("json")]
+        fn get_game(&self, game_id: String) -> Result<Game, ()> {
+            Ok(self.games.get_game(&game_id))
         }
     }
 }
 
-fn service_builder(region: Region) -> ServiceBuilder<Test, DefaultCatch, Identity> {
+fn service_builder(region: Region, games_table_name: String) -> ServiceBuilder<Test, DefaultCatch, Identity> {
     lambda::logger::init();
     info!("New lambda started!");
 
-    let client = DynamoDbClient::simple(region);
+    let dynamodb = DynamoDbClient::simple(region);
 
     ServiceBuilder::new()
-        .resource(Test { dynamodb: client })
+        .resource(Test { games: Games { dynamodb, table_name: games_table_name } })
 }
 
 fn main() {
-    service_builder(Region::EuWest2)
+    service_builder(Region::EuWest2, std::env::var("GAMES_TABLE").unwrap())
         .run_lambda()
         .unwrap();
 }
@@ -92,7 +124,7 @@ mod tests {
         service_builder(Region::Custom {
             name: "local".to_owned(),
             endpoint: "http://localhost:8000".to_owned()
-        })
+        }, "extreme-startup-prod-games".to_owned())
             .run(&addr)
             .unwrap();
     }
