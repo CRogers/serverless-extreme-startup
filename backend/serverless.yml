@@ -36,7 +36,7 @@ provider:
     - dynamodb:UpdateItem
     - dynamodb:DeleteItem
     Resource:
-    - "Fn::GetAtt": [ DynamoDbTable, Arn ]
+    - "Fn::GetAtt": [ GamesTable, Arn ]
 
   environment:
     RUST_BACKTRACE: 1
@@ -58,15 +58,17 @@ functions:
 
 resources:
   Resources:
-    DynamoDbTable:
+    GamesTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: test-table
+        TableName: ${self:service}-${self:provider.stage}-games
         AttributeDefinitions:
-        - AttributeName: id
+        - AttributeName: game_id
+          AttributeType: S
+        - AttributeName: time_started
           AttributeType: S
         KeySchema:
-        - AttributeName: id
+        - AttributeName: game_id
           KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1

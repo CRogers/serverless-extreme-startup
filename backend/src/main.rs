@@ -4,23 +4,35 @@ extern crate aws_lambda_tower_web;
 #[macro_use] extern crate log;
 extern crate rusoto_core;
 extern crate rusoto_dynamodb;
+extern crate serde;
+extern crate serde_dynamodb;
+extern crate chrono;
 
 use rusoto_core::Region;
-use rusoto_dynamodb::{DescribeTableInput, DynamoDb, DynamoDbClient};
+use rusoto_dynamodb::{DescribeTableInput, AttributeValue, PutItemInput, DynamoDb, DynamoDbClient};
 
 use tower_web::ServiceBuilder;
 use aws_lambda_tower_web::ServiceBuilderExt;
 use tower_web::error::DefaultCatch;
 use tower_web::middleware::Identity;
 use std::net::SocketAddr;
+use chrono::DateTime;
+use chrono::Utc;
+use std::collections::HashMap;
 
 struct Test {
     dynamodb: DynamoDbClient,
 }
 
+#[derive(Serialize, Deserialize)]
+struct Game {
+    game_id: String,
+    time_started: DateTime<Utc>,
+}
+
 impl Test {
     fn describe_table(&self) {
-        match self.dynamodb.describe_table(DescribeTableInput { table_name: "test-table".to_string() }).sync() {
+        match self.dynamodb.describe_table(&DescribeTableInput { table_name: "test-table".to_string() }).sync() {
             Ok(output) => {
                 println!("Output: {:?}", output);
             },
@@ -28,6 +40,18 @@ impl Test {
                 error!("Error: {:?}", error);
             }
         }
+    }
+
+    fn create_new_game(&self, game_id: &str) {
+        let v = serde_dynamodb::to_hashmap(&Game {
+            game_id: game_id.to_owned(),
+            time_started: Utc::now(),
+        }).unwrap();
+        self.dynamodb.put_item(&PutItemInput {
+            item: v,
+            table_name: "test-table".to_owned(),
+            ..Default::default()
+        }).sync().unwrap();
     }
 }
 
@@ -45,7 +69,7 @@ fn service_builder(region: Region) -> ServiceBuilder<Test, DefaultCatch, Identit
     lambda::logger::init();
     info!("New lambda started!");
 
-    let client = DynamoDbClient::new(region);
+    let client = DynamoDbClient::simple(region);
 
     ServiceBuilder::new()
         .resource(Test { dynamodb: client })

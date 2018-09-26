@@ -8,5 +8,8 @@ aws_lambda = { git = "https://github.com/srijs/rust-aws-lambda", rev = "75f447c6
 aws_lambda_tower_web = { git = "https://github.com/srijs/rust-aws-lambda", rev = "75f447c64c7ff34acfde4a16eceb14429f071703" }
 log = "*"
 tower-web = "*"
-rusoto_core = "*"
-rusoto_dynamodb = "*"
+rusoto_core = "0.32.0"
+rusoto_dynamodb = "0.32.0"
+serde_dynamodb = "*"
+serde = "*"
+chrono = "*"
